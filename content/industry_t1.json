@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 2,
+  "id": "industry_t1",
+  "slug": "know-your-battlefield",
+  "topic": "industry",
+  "tier": 1,
+  "title": "Know Your Battlefield",
+  "subtitle": "Before you fight for shelf space, understand the war.",
+  "orderIndex": 1,
+  "xpReward": 150,
+  "badgeId": "badge_scout",
+  "estimatedMinutes": 10,
+  "caseTag": "choconation",
+  "gameplay": {
+    "kind": "narrative",
+    "metrics": [
+      { "id": "cash", "label": "Cash", "start": 50000, "format": "inr" },
+      { "id": "insight", "label": "Market Insight", "start": 0, "format": "score" }
+    ],
+    "startNodeId": "n01_research",
+    "nodes": [
+      {
+        "id": "n01_research",
+        "title": "The Blind Spot",
+        "narrative": "ChocoNation sells well in your neighbourhood, but you realise you know almost nothing about the chocolate industry you're fighting in. Who buys chocolate in India, when, and why? Who are you really competing against? You have ₹50,000 set aside and a free week. How do you learn the battlefield?",
+        "imageHint": "founder looking at a wall of chocolate brands in a store",
+        "decisions": [
+          {
+            "id": "d1_field",
+            "label": "Spend the week in stores — watch buyers, quiz shopkeepers",
+            "metricDeltas": { "insight": 30 },
+            "nextNodeId": "n02_competitor",
+            "outcomeSummary": "Free and gold. You learn chocolate here is mostly an impulse buy near the counter, sales spike around festivals, and shopkeepers push whichever brand gives them better margin. Nobody mentions your almond centre unless asked.",
+            "realWorldParallel": "Great consumer companies famously send founders to watch real purchases — customers vote at the shelf, not in surveys.",
+            "quality": "strong"
+          },
+          {
+            "id": "d2_report",
+            "label": "Buy a ₹40,000 industry research report",
+            "metricDeltas": { "cash": -40000, "insight": 15 },
+            "nextNodeId": "n02_competitor",
+            "outcomeSummary": "The report is full of national market sizes and five-year forecasts — impressive charts, but almost nothing about YOUR city, YOUR stores, or why a student picks one ₹30 bar over another. Some insight, at a heavy price.",
+            "realWorldParallel": "Industry reports suit large companies planning at national scale; early-stage founders usually learn more from a week of direct observation than a year of purchased data.",
+            "quality": "weak"
+          },
+          {
+            "id": "d3_survey",
+            "label": "Run a ₹5,000 online survey of 200 students",
+            "metricDeltas": { "cash": -5000, "insight": 20 },
+            "nextNodeId": "n02_competitor",
+            "outcomeSummary": "Useful but slippery: 68% say they'd 'definitely buy' a premium almond bar — yet you notice people often say one thing in surveys and do another at the counter. You learn preferences, not behaviour.",
+            "realWorldParallel": "Founders learn to treat stated intent with suspicion: what people SAY they'll buy and what they actually buy diverge constantly.",
+            "quality": "mixed"
+          }
+        ]
+      },
+      {
+        "id": "n02_competitor",
+        "title": "Sizing Up the Giant",
+        "narrative": "Your research keeps pointing at one fact: a national brand owns roughly 6 of every 10 chocolate sales in the country. It has TV ads, cold-storage vans, and margins that let it discount for months. A shopkeeper asks you plainly: 'Beta, why should I give your bar the counter spot instead of theirs?' What's your competitive position?",
+        "imageHint": "small chocolate bar next to a giant branded display",
+        "decisions": [
+          {
+            "id": "d1_niche",
+            "label": "Own a niche: 'the crunchy almond bar for students'",
+            "metricDeltas": { "insight": 25 },
+            "nextNodeId": "n03_moat",
+            "outcomeSummary": "You stop fighting the giant everywhere and start winning somewhere. Shopkeepers near colleges give you the counter spot because students ask for you by name. Small, but yours.",
+            "realWorldParallel": "Challenger brands rarely beat market leaders head-on; they win a specific customer, occasion, or place first, then expand from strength.",
+            "quality": "strong"
+          },
+          {
+            "id": "d2_price_war",
+            "label": "Undercut them — drop your price to ₹20",
+            "metricDeltas": { "cash": -10000, "insight": 10 },
+            "nextNodeId": "n03_moat",
+            "outcomeSummary": "Sales tick up for two weeks — then the giant runs a buy-one-get-one offer in your city and doesn't even feel it. You've learned something important the hard way: never start a war the other side can fund forever.",
+            "realWorldParallel": "Price wars favour the player with the deepest pockets; small brands that trigger them usually become the first casualty.",
+            "quality": "weak"
+          },
+          {
+            "id": "d3_copy",
+            "label": "Copy their playbook — same look, similar ads, slightly cheaper",
+            "metricDeltas": { "cash": -15000, "insight": 5 },
+            "nextNodeId": "n03_moat",
+            "outcomeSummary": "Customers now see you as the imitation, and imitations only win on price — which you can't sustain. Worse, your almond centre, the one thing they DON'T have, got buried in the copycat look.",
+            "realWorldParallel": "Copying the leader hands them the fight on their terms; differentiation exists precisely so small players don't have to win someone else's game.",
+            "quality": "weak"
+          }
+        ]
+      },
+      {
+        "id": "n03_moat",
+        "title": "The Question That Decides Everything",
+        "narrative": "A friend who works in FMCG asks you the question every investor eventually asks: 'If your almond bar works, what stops the giant from launching one next quarter?' Your honest answer will shape where ChocoNation goes next.",
+        "imageHint": "two founders talking over chai",
+        "decisions": [
+          {
+            "id": "d1_relationships",
+            "label": "They can copy the bar, not my 40 shopkeeper relationships and student community",
+            "metricDeltas": { "insight": 25 },
+            "nextNodeId": null,
+            "outcomeSummary": "That's a real moat: the giant can make almonds meet chocolate, but it can't quickly replicate trust with your specific shopkeepers or the college fest crowds that know your name. Defensibility built from relationships compounds quietly.",
+            "realWorldParallel": "Small brands survive giants through advantages that don't photocopy: local relationships, community, speed, and service — not the recipe.",
+            "quality": "strong"
+          },
+          {
+            "id": "d2_secret",
+            "label": "My recipe is secret — they'll never match the taste",
+            "metricDeltas": { "insight": 5 },
+            "nextNodeId": null,
+            "outcomeSummary": "Comforting, but shaky: the giant has food labs that reverse-engineer flavours for breakfast. If your entire defence is a recipe, your moat is a puddle. Better to know that now than after they launch.",
+            "realWorldParallel": "Product features alone are the weakest moat in consumer goods; big players replicate taste and packaging within months when a niche proves profitable.",
+            "quality": "mixed"
+          }
+        ]
+      }
+    ]
+  }
+}

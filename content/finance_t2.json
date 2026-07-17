@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 2,
+  "id": "finance_t2",
+  "slug": "build-the-model",
+  "topic": "finance",
+  "tier": 2,
+  "title": "Build the Model",
+  "subtitle": "Turn your idea into numbers a founder can defend.",
+  "orderIndex": 1,
+  "xpReward": 250,
+  "badgeId": "badge_modeler",
+  "estimatedMinutes": 15,
+  "caseTag": "choconation",
+  "gameplay": {
+    "kind": "builder",
+    "instructions": "Time to think like a CFO. Take your own business idea (or ChocoNation's mango bar launch) and sketch its first-year money story in plain words and rough numbers. You don't need a spreadsheet — you need LOGIC: where money comes from, what each sale costs, what running the business costs, and what's left. As a worked example: ChocoNation sells bars at ₹30 that cost ₹18 to make, and spends about ₹25,000 a month on rent, delivery and ads — so it needs roughly 2,100 bars a month just to cover overheads before earning a rupee of profit.",
+    "fields": [
+      {
+        "id": "revenue",
+        "label": "Revenue",
+        "prompt": "What do you sell, at what price, and roughly how many units a month? Show your monthly revenue estimate and say why that volume is believable.",
+        "placeholder": "We sell X at ₹Y to..., about N per month because...",
+        "maxChars": 600
+      },
+      {
+        "id": "direct_costs",
+        "label": "Direct Costs",
+        "prompt": "What does ONE unit cost you to make or deliver (materials, packaging, delivery per unit)? What's your margin per unit after these costs?",
+        "placeholder": "Each unit costs ₹Z: ... so we keep ₹... per sale",
+        "maxChars": 600
+      },
+      {
+        "id": "sga",
+        "label": "Overheads (SG&A)",
+        "prompt": "What does it cost to run the business each month regardless of sales — rent, salaries, marketing, tools? Give a monthly total with a rough breakup.",
+        "placeholder": "About ₹... per month: rent ₹..., marketing ₹...",
+        "maxChars": 600
+      },
+      {
+        "id": "ebitda",
+        "label": "Profit (EBITDA)",
+        "prompt": "Put it together: monthly revenue minus direct costs minus overheads. Is the result positive or negative — and how many units per month would you need to break even?",
+        "placeholder": "Revenue ... - direct costs ... - overheads ... = ...",
+        "maxChars": 600
+      }
+    ],
+    "rubric": [
+      {
+        "id": "logic",
+        "label": "Numbers connect",
+        "description": "The four fields form one consistent story: the EBITDA line actually follows from the revenue, direct cost, and overhead numbers given, with arithmetic roughly right.",
+        "maxPoints": 5,
+        "passThreshold": 3
+      },
+      {
+        "id": "realism",
+        "label": "Believable assumptions",
+        "description": "Prices, volumes, and costs are plausible for the idea described, and at least one assumption is justified (why N units, why that price) rather than asserted.",
+        "maxPoints": 5,
+        "passThreshold": 3
+      },
+      {
+        "id": "classification",
+        "label": "Costs in the right buckets",
+        "description": "Per-unit costs sit in Direct Costs and fixed running costs sit in Overheads — nothing important is double-counted or misplaced.",
+        "maxPoints": 5,
+        "passThreshold": 3
+      },
+      {
+        "id": "breakeven",
+        "label": "Understands break-even",
+        "description": "States whether the business makes or loses money monthly and shows awareness of what would have to change (units, price, or costs) to break even.",
+        "maxPoints": 5,
+        "passThreshold": 3
+      }
+    ],
+    "passCriteriaCount": 3
+  }
+}

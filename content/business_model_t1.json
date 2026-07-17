@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 2,
+  "id": "business_model_t1",
+  "slug": "business-model-basics",
+  "topic": "business_model",
+  "tier": 1,
+  "title": "What Makes ChocoNation Tick?",
+  "subtitle": "Every business is a machine. Sort the parts of this one.",
+  "orderIndex": 1,
+  "xpReward": 120,
+  "badgeId": "badge_machine_builder",
+  "estimatedMinutes": 7,
+  "caseTag": "choconation",
+  "gameplay": {
+    "kind": "sort_buckets",
+    "scenario": "ChocoNation is a young chocolate brand: an almond bar that costs ₹18 to make, sold through 40 kirana stores in your city. A business is a machine with parts that fit together — customers, the value you offer them, how you reach them, how money comes in, and what it costs to run. Sort each fact about ChocoNation into the part of the machine it belongs to.",
+    "buckets": [
+      { "id": "customer_segment", "label": "Customer Segment", "hint": "WHO the business serves" },
+      { "id": "value_proposition", "label": "Value Proposition", "hint": "WHY they choose you over alternatives" },
+      { "id": "channel", "label": "Channel", "hint": "HOW your product reaches the customer" },
+      { "id": "revenue_stream", "label": "Revenue Stream", "hint": "HOW money comes in" },
+      { "id": "cost_structure", "label": "Cost Structure", "hint": "WHAT it costs to run the machine" }
+    ],
+    "items": [
+      {
+        "id": "i1",
+        "label": "School and college students who want an affordable treat",
+        "correctBucket": "customer_segment",
+        "explain": "This describes WHO you serve. Notice it is specific — 'students who want an affordable treat', not 'everyone who likes chocolate'. Sharp customer segments make every other decision easier."
+      },
+      {
+        "id": "i2",
+        "label": "A crunchy almond centre no other bar at this price has",
+        "correctBucket": "value_proposition",
+        "explain": "This is WHY someone picks you over the big brand — your value proposition. It only counts if customers actually care about it and rivals don't offer it."
+      },
+      {
+        "id": "i3",
+        "label": "40 kirana stores across the city",
+        "correctBucket": "channel",
+        "explain": "Kirana stores are the path your bar travels to reach the customer's hand — a channel. Same product in a different channel (online, supermarkets) becomes almost a different business."
+      },
+      {
+        "id": "i4",
+        "label": "₹30 collected every time a bar sells",
+        "correctBucket": "revenue_stream",
+        "explain": "Money flowing IN from sales is a revenue stream. ChocoNation has just one; many businesses have several (think of a cinema: tickets AND popcorn)."
+      },
+      {
+        "id": "i5",
+        "label": "₹18 of cocoa, almonds, and wrapper per bar",
+        "correctBucket": "cost_structure",
+        "explain": "Costs that go INTO making each bar sit in the cost structure. Because these rise with every bar sold, founders call them 'direct' or 'variable' costs."
+      },
+      {
+        "id": "i6",
+        "label": "Monthly rent for the small production kitchen",
+        "correctBucket": "cost_structure",
+        "explain": "Also a cost — but notice it stays the same whether you sell 100 bars or 10,000. Fixed costs like rent are why selling MORE makes each bar effectively cheaper to produce."
+      },
+      {
+        "id": "i7",
+        "label": "Office workers looking for Diwali gift boxes",
+        "correctBucket": "customer_segment",
+        "explain": "A second WHO — a different customer segment with different needs (gifting, not snacking). Serving them well might need a different product, price, and even channel."
+      },
+      {
+        "id": "i8",
+        "label": "Delivering fresh stock to stores every Monday",
+        "correctBucket": "channel",
+        "explain": "Distribution logistics are part of HOW the product reaches customers — the channel includes not just where you sell but how the product gets there reliably."
+      },
+      {
+        "id": "i9",
+        "label": "A ₹2,000 monthly fee from a cafe that stocks ChocoNation exclusively",
+        "correctBucket": "revenue_stream",
+        "explain": "Money in, but from a different source than bar sales — a second revenue stream. Multiple streams make a business sturdier when one slows down."
+      },
+      {
+        "id": "i10",
+        "label": "Instagram ads to promote the new flavour",
+        "correctBucket": "cost_structure",
+        "explain": "Marketing spend is a cost — but unlike cocoa, it does not go into any single bar. Costs like ads, rent, and salaries are grouped as overheads (SG&A). You will meet them again in the Finance levels."
+      }
+    ],
+    "passPercent": 70
+  }
+}

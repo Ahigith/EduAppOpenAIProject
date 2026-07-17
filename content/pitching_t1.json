@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 2,
+  "id": "pitching_t1",
+  "slug": "elevator-pitch",
+  "topic": "pitching",
+  "tier": 1,
+  "title": "The Elevator Pitch",
+  "subtitle": "60 seconds. One investor. Make it count.",
+  "orderIndex": 1,
+  "xpReward": 150,
+  "badgeId": "badge_pitcher",
+  "estimatedMinutes": 8,
+  "caseTag": "choconation",
+  "gameplay": {
+    "kind": "roleplay",
+    "setup": "The lift doors close. Standing next to you is Meera Krishnan, an early-stage investor known for backing young founders. She smiles: 'So — what are you building?' You have until the 14th floor. Pitch your own idea — or pitch ChocoNation if you don't have one yet.",
+    "persona": {
+      "id": "investor_meera",
+      "name": "Meera Krishnan",
+      "role": "investor",
+      "traits": ["curious", "encouraging", "quietly sharp"],
+      "background": "Former operator who built a consumer brand before becoming an investor. Genuinely enjoys first-time founders and asks simple questions that turn out to be hard: who is it for, and why would they pay?",
+      "objections": [
+        "Who exactly is your customer — can you describe one real person who'd want this?",
+        "How does this make money — walk me through one sale."
+      ],
+      "maxTurns": 4,
+      "warmth": "friendly"
+    },
+    "rubric": [
+      {
+        "id": "clarity",
+        "label": "Clarity of the idea",
+        "description": "A stranger could repeat back what the business does after one hearing. No jargon, one clear sentence for the problem and one for the solution.",
+        "maxPoints": 5,
+        "passThreshold": 3
+      },
+      {
+        "id": "customer",
+        "label": "Knows the customer",
+        "description": "Names a specific customer (who, where, what situation) rather than 'everyone' or a vague demographic.",
+        "maxPoints": 5,
+        "passThreshold": 3
+      },
+      {
+        "id": "money",
+        "label": "Path to money",
+        "description": "Explains how one sale works: what the customer pays and roughly why they'd choose this.",
+        "maxPoints": 5,
+        "passThreshold": 3
+      }
+    ],
+    "passCriteriaCount": 2
+  }
+}

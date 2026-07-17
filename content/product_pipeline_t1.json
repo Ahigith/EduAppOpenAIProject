@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 2,
+  "id": "product_pipeline_t1",
+  "slug": "idea-to-shelf",
+  "topic": "product_pipeline",
+  "tier": 1,
+  "title": "From Idea to Shelf",
+  "subtitle": "ChocoNation wants a mango flavour by summer. Put the journey in order.",
+  "orderIndex": 1,
+  "xpReward": 120,
+  "badgeId": "badge_pipeline_pro",
+  "estimatedMinutes": 6,
+  "caseTag": "choconation",
+  "gameplay": {
+    "kind": "sequence",
+    "scenario": "It's January. ChocoNation wants to launch a mango-chocolate bar before summer. Between the idea in your head and a customer picking it off a kirana shelf lies a pipeline — and doing the steps out of order wastes money and time. Arrange the journey.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "Talk to 20 customers about the mango idea",
+        "explain": "Ideas are cheap; wrong ideas are expensive. Founders test demand BEFORE spending on development — if students and shopkeepers shrug at 'mango chocolate', you just saved months and lakhs."
+      },
+      {
+        "id": "s2",
+        "label": "Develop small test batches in the kitchen and refine the recipe",
+        "explain": "Development comes after you know people want it. Small batches let you fail cheaply — a bad recipe at 2kg costs pocket money; at 2 tonnes it costs the company."
+      },
+      {
+        "id": "s3",
+        "label": "Calculate cost per bar and set the selling price",
+        "explain": "Before mass production, you must know the unit economics: if mango pulp pushes cost to ₹24 and customers won't pay above ₹35, your margin per bar is ₹11 — decide NOW whether that works, not after making 50,000 bars."
+      },
+      {
+        "id": "s4",
+        "label": "Order ingredients in bulk and run full production",
+        "explain": "Production scales up only once the recipe is locked and the maths works. Bulk ordering cuts your ingredient cost — but it also locks in your money, which is why it sits this late."
+      },
+      {
+        "id": "s5",
+        "label": "Arrange cold-chain vans and deliver stock to stores",
+        "explain": "Logistics: chocolate in Indian summer needs cool transport, or your product melts before it earns. Distribution is planned around production output — you can't deliver what isn't made."
+      },
+      {
+        "id": "s6",
+        "label": "Launch in stores with posters and a tasting weekend",
+        "explain": "The launch goes last: marketing works best when the product is actually ON the shelf. Promoting a bar people can't find burns money and goodwill."
+      }
+    ],
+    "passPercent": 65
+  }
+}
