@@ -1,0 +1,3 @@
+2026-07-17 | Codex | deterministic scoring | Added pure sort-bucket and sequence scoring, seeded non-identity step shuffling, and unit tests | Humans should review scoring thresholds with the game design.
+2026-07-17 | Codex | Supabase layer | Added the five-table migration, server-side data helpers, anonymous cookie session, and level seeding script | Humans should apply the migration before running the seed.
+2026-07-18 | Codex | AI client | Added the sole OpenAI SDK boundary with validated repair/fallback flows, evaluation consistency checks, debrief caching, and mocked tests | Humans should review cache retention alongside attempts analytics.

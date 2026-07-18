@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tsx --test lib/**/*.test.ts",
+    "seed": "tsx scripts/seed-levels.ts",
+    "validate:content": "tsx scripts/validate-content.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.6",
@@ -24,6 +27,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
+    "tsx": "^4.23.1",
     "typescript": "^5"
   }
 }
