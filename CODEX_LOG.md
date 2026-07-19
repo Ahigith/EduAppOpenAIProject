@@ -4,3 +4,5 @@
 2026-07-18 | Codex | narrative mechanic | Added persistent narrative state, decision API, AI debrief UI, and completion handling | Humans should exercise industry T1 with the configured AI key.
 2026-07-19 | Codex | roleplay backend | Added persistent roleplay turns, closing/turn-limit evaluation, XP completion, and mocked turn-flow tests | Humans should exercise elevator-pitch with configured Supabase and AI credentials.
 2026-07-19 | Codex | roleplay restart and UI | Added restartable roleplay attempts, duplicate-XP protection tests, chat and results UI, and friendly retry handling | Humans should verify elevator-pitch completion, failed retry, pending retry, and completed practice replay.
+2026-07-19 | Codex | builder UI | Added the finance T2 builder form with labeled, counted fields and shared roleplay/builder results UI | API owner must add `/app/api/builder` before human end-to-end review.
+2026-07-19 | Codex | builder API | Added validated builder submission evaluation, attempt persistence, one-time XP completion, and pending handling with focused API tests | Humans should exercise Build the Model with configured Supabase and AI credentials.
