@@ -2,3 +2,4 @@
 2026-07-17 | Codex | Supabase layer | Added the five-table migration, server-side data helpers, anonymous cookie session, and level seeding script | Humans should apply the migration before running the seed.
 2026-07-18 | Codex | AI client | Added the sole OpenAI SDK boundary with validated repair/fallback flows, evaluation consistency checks, debrief caching, and mocked tests | Humans should review cache retention alongside attempts analytics.
 2026-07-18 | Codex | narrative mechanic | Added persistent narrative state, decision API, AI debrief UI, and completion handling | Humans should exercise industry T1 with the configured AI key.
+2026-07-19 | Codex | roleplay backend | Added persistent roleplay turns, closing/turn-limit evaluation, XP completion, and mocked turn-flow tests | Humans should exercise elevator-pitch with configured Supabase and AI credentials.
