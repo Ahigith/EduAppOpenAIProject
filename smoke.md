@@ -8,4 +8,4 @@
 6. Open **Finance T2 — Build the Model**. Complete every builder field within its character limit, submit, and confirm either scored results or the pending-review state.
 7. Return to the map. Confirm total XP and badges match completed levels, Finance T2 is available when its Finance T1 prerequisite is complete, and Industry T2 is available after Industry T1 is complete.
 8. Refresh the browser. Confirm session, completed states, XP, badges, unlock states, and in-progress data persist.
-9. Open `/api/health`. Confirm it returns HTTP 200 with `{ "ok": true, "dbConnected": true, "contentLevels": 5 }` (or the current authored content count).
+9. Open `/api/health`. Confirm it returns HTTP 200 with `{ "ok": true, "dbConnected": true, "contentLevels": 6 }` (or the current authored content count).

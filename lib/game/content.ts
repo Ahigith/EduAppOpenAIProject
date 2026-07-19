@@ -1,5 +1,6 @@
 import { LevelDefinitionSchema, type LevelDefinition } from "../schemas";
 import businessModelT1 from "../../content/business_model_t1.json";
+import financeT1 from "../../content/finance_t1.json";
 import financeT2 from "../../content/finance_t2.json";
 import industryT1 from "../../content/industry_t1.json";
 import pitchingT1 from "../../content/pitching_t1.json";
@@ -7,6 +8,7 @@ import productPipelineT1 from "../../content/product_pipeline_t1.json";
 
 const authoredLevels: unknown[] = [
   businessModelT1,
+  financeT1,
   financeT2,
   industryT1,
   pitchingT1,

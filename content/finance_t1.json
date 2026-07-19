@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 2,
+  "id": "finance_t1",
+  "slug": "where-does-the-money-go",
+  "topic": "finance",
+  "tier": 1,
+  "title": "Where Does the Money Go?",
+  "subtitle": "Sort ChocoNation's money story before you build the full model.",
+  "orderIndex": 1,
+  "xpReward": 120,
+  "badgeId": "badge_money_mapper",
+  "estimatedMinutes": 7,
+  "caseTag": "choconation",
+  "gameplay": {
+    "kind": "sort_buckets",
+    "scenario": "ChocoNation sells almond bars through kirana stores. A founder needs to see where each rupee belongs: money from customers, costs tied to each bar, monthly running costs, and items that are useful but do not belong in a simple profit-and-loss story. Sort these money items into the right bucket.",
+    "buckets": [
+      { "id": "revenue", "label": "Revenue", "hint": "Money earned from customers" },
+      { "id": "direct_costs", "label": "Direct Costs", "hint": "Costs that rise when you make or sell one more bar" },
+      { "id": "sga", "label": "Overheads (SG&A)", "hint": "Monthly costs to run the business" },
+      { "id": "not_pnl", "label": "Not P&L", "hint": "Important cash or business items, but not this month's sales or costs" }
+    ],
+    "items": [
+      {
+        "id": "bar_sales",
+        "label": "₹30 received when one almond bar is sold",
+        "correctBucket": "revenue",
+        "explain": "This is revenue: money customers pay for the product. Revenue is the starting line of a profit-and-loss statement, not the profit itself."
+      },
+      {
+        "id": "ingredients",
+        "label": "₹18 for cocoa, almonds, and the wrapper for one bar",
+        "correctBucket": "direct_costs",
+        "explain": "These are direct costs because they belong to each bar. If ChocoNation sells more bars, it needs more ingredients and wrappers."
+      },
+      {
+        "id": "delivery_per_box",
+        "label": "₹4 delivery charge for each bar sent to a kirana store",
+        "correctBucket": "direct_costs",
+        "explain": "This delivery cost moves with each sale, so it is a direct cost. It helps a founder calculate how much is left from each bar before overheads."
+      },
+      {
+        "id": "kitchen_rent",
+        "label": "₹12,000 monthly rent for the production kitchen",
+        "correctBucket": "sga",
+        "explain": "Rent is an overhead: ChocoNation pays it even in a slow month. It is part of the running cost that sales must eventually cover."
+      },
+      {
+        "id": "social_ads",
+        "label": "₹3,000 spent on a month of school-fair and social-media ads",
+        "correctBucket": "sga",
+        "explain": "Advertising is an overhead because it supports the whole business, rather than one particular bar. Founders group running costs like this as SG&A."
+      },
+      {
+        "id": "loan_received",
+        "label": "₹50,000 borrowed from a family member to buy a small mixer",
+        "correctBucket": "not_pnl",
+        "explain": "The cash is important, but borrowing is not revenue from customers. It changes the cash available and creates a repayment obligation, not this month's operating profit."
+      },
+      {
+        "id": "mixer_purchase",
+        "label": "₹20,000 paid once for a chocolate mixer",
+        "correctBucket": "not_pnl",
+        "explain": "A mixer helps the business for many months, so it is not treated like a single month's normal running cost in this simple P&L exercise."
+      }
+    ],
+    "passPercent": 70
+  }
+}

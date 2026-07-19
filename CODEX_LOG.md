@@ -7,3 +7,4 @@
 2026-07-19 | Codex | builder UI | Added the finance T2 builder form with labeled, counted fields and shared roleplay/builder results UI | API owner must add `/app/api/builder` before human end-to-end review.
 2026-07-19 | Codex | builder API | Added validated builder submission evaluation, attempt persistence, one-time XP completion, and pending handling with focused API tests | Humans should exercise Build the Model with configured Supabase and AI credentials.
 2026-07-19 | Codex | production readiness | Bundled authored content, declared Node API runtimes, added database/content health checks, and documented a production smoke path | Humans should set Vercel production env vars and execute smoke.md after deployment.
+2026-07-19 | Codex | map access and finance T1 | Linked every unlocked mechanic from the map, displayed earned badge IDs, and added the Finance T1 money-sorting level | Humans should seed the new level before testing Finance T2 unlocks in production.
