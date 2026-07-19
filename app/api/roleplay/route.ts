@@ -4,6 +4,7 @@ import { evaluateAttempt } from "../../../lib/ai/client";
 import { generateRoleplayAttemptTurn } from "../../../lib/ai/roleplay-flow";
 import { appendTranscript, getProgress, getSupabaseServerClient, recordAttempt, upsertProgress } from "../../../lib/db";
 import { getLevelBySlug } from "../../../lib/game/content";
+import { roleplayRestartState, roleplayXpAward } from "../../../lib/game/roleplay-restart";
 import { getAnonymousSessionUserId } from "../../../lib/session";
 import type { EvalResult } from "../../../lib/schemas";
 
@@ -38,14 +39,41 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid roleplay request" }, { status: 400 });
     }
     if (!body || typeof body !== "object") return NextResponse.json({ error: "Invalid roleplay request" }, { status: 400 });
-    const { slug, message } = body as { slug?: unknown; message?: unknown };
-    if (typeof slug !== "string" || typeof message !== "string" || !message.trim() || message.length > 800) {
-      return NextResponse.json({ error: "A non-empty message of 800 characters or fewer is required" }, { status: 400 });
-    }
+    const { slug, message, action } = body as { slug?: unknown; message?: unknown; action?: unknown };
+    if (typeof slug !== "string") return NextResponse.json({ error: "A roleplay level is required" }, { status: 400 });
 
     const level = getLevelBySlug(slug);
     if (!level || level.gameplay.kind !== "roleplay") {
       return NextResponse.json({ error: "This is not a roleplay level" }, { status: 400 });
+    }
+
+    if (action === "restart") {
+      const supabase = getSupabaseServerClient();
+      const { data: currentAttempt, error: currentAttemptError } = await supabase
+        .from("attempts")
+        .select("id, payload")
+        .eq("user_id", userId)
+        .eq("level_id", level.id)
+        .contains("payload", { kind: "roleplay" })
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (currentAttemptError) throw currentAttemptError;
+
+      const currentPayload = readRoleplayPayload(currentAttempt?.payload);
+      if (currentAttempt && !currentPayload?.completed) {
+        const { error: closeAttemptError } = await supabase
+          .from("attempts")
+          .update({ payload: { kind: "roleplay", internalNotes: currentPayload?.internalNotes ?? [], completed: true } })
+          .eq("id", currentAttempt.id);
+        if (closeAttemptError) throw closeAttemptError;
+      }
+      await recordAttempt({ userId, levelId: level.id, payload: { kind: "roleplay", internalNotes: [] } });
+      return NextResponse.json(roleplayRestartState(level.gameplay.persona.maxTurns));
+    }
+    if (action !== undefined) return NextResponse.json({ error: "Invalid roleplay action" }, { status: 400 });
+    if (typeof message !== "string" || !message.trim() || message.length > 800) {
+      return NextResponse.json({ error: "A non-empty message of 800 characters or fewer is required" }, { status: 400 });
     }
 
     const supabase = getSupabaseServerClient();
@@ -100,8 +128,10 @@ export async function POST(request: Request) {
       });
       if (evaluation !== "pending" && evaluation.overallPassed) {
         const wasCompleted = (await getProgress(userId)).some((progress) => progress.level_id === level.id && progress.status === "completed");
-        awardedXp = wasCompleted ? 0 : level.xpReward;
-        await upsertProgress({ userId, levelId: level.id, status: "completed", xpEarned: awardedXp });
+        awardedXp = roleplayXpAward(wasCompleted, level.xpReward);
+        if (!wasCompleted) {
+          await upsertProgress({ userId, levelId: level.id, status: "completed", xpEarned: awardedXp });
+        }
       }
     }
 
