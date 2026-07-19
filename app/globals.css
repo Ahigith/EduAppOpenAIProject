@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fffaf0;
+  --foreground: #2b1a13;
 }
 
 @theme inline {
@@ -12,15 +12,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+* { box-sizing: border-box; }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at 10% 0%, rgb(255 217 137 / 0.45), transparent 23rem),
+    radial-gradient(circle at 95% 10%, rgb(186 230 219 / 0.5), transparent 25rem),
+    var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+button, a, textarea { -webkit-tap-highlight-color: transparent; }
+
+::selection { background: #f7c65a; color: #2b1a13; }
