@@ -8,6 +8,8 @@ import { roleplayRestartState, roleplayXpAward } from "../../../lib/game/rolepla
 import { getAnonymousSessionUserId } from "../../../lib/session";
 import type { EvalResult } from "../../../lib/schemas";
 
+export const runtime = "nodejs";
+
 type TranscriptRow = { role: "player" | "persona"; content: string };
 type InternalNote = { turnNumber: number; content: string };
 type RoleplayPayload = { kind: "roleplay"; completed?: boolean; internalNotes?: InternalNote[] };

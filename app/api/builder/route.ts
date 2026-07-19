@@ -6,6 +6,8 @@ import { getLevelBySlug } from "../../../lib/game/content";
 import { getAnonymousSessionUserId } from "../../../lib/session";
 import type { LevelDefinition } from "../../../lib/schemas";
 
+export const runtime = "nodejs";
+
 type BuilderLevel = LevelDefinition & { gameplay: Extract<LevelDefinition["gameplay"], { kind: "builder" }> };
 
 type BuilderDependencies = {

@@ -40,8 +40,9 @@ function getOpenAIClient(): OpenAIClientLike {
 }
 
 function getModel(): string {
-  if (!process.env.AI_MODEL) throw new Error("AI_MODEL must be configured.");
-  return process.env.AI_MODEL;
+  const model = process.env.AI_MODEL ?? (process.env.NODE_ENV !== "production" ? process.env.AI_DEV_MODEL : undefined);
+  if (!model) throw new Error("AI_MODEL must be configured in production.");
+  return model;
 }
 
 async function requestJson(systemPrompt: string, userPrompt: string, temperature: number): Promise<string> {
