@@ -12,6 +12,28 @@ export type AppUser = {
   created_at: string;
 };
 
+export async function getOrCreateUserByHandle(handle: string): Promise<{ user: AppUser; isNew: boolean }> {
+  const supabase = getSupabaseServerClient();
+  const { data: existing, error: findError } = await supabase
+    .from("users")
+    .select("id, handle, created_at")
+    .eq("handle", handle)
+    .maybeSingle();
+
+  if (findError) throw findError;
+  if (existing) return { user: existing as AppUser, isNew: false };
+
+  const id = randomUUID();
+  const { data, error } = await supabase
+    .from("users")
+    .insert({ id, handle })
+    .select("id, handle, created_at")
+    .single();
+
+  if (error) throw error;
+  return { user: data as AppUser, isNew: true };
+}
+
 function getRequiredEnvironmentVariable(name: "SUPABASE_URL" | "SUPABASE_ANON_KEY"): string {
   const value = process.env[name];
   if (!value) {

@@ -21,7 +21,7 @@ function titleForTopic(topic: string): string {
 
 export default async function Home() {
   const userId = await getAnonymousSessionUserId();
-  if (!userId) redirect("/api/session");
+  if (!userId) redirect("/login");
 
   const levels = loadAllLevels();
   const progress = await getProgress(userId);
