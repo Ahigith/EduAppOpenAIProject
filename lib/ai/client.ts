@@ -3,7 +3,6 @@ import OpenAI from "openai";
 import { getSupabaseServerClient, recordAttempt } from "../db";
 import {
   DebriefSchema,
-  EvalResultSchema,
   type BuilderField,
   type Debrief,
   type EvalResult,
@@ -13,17 +12,12 @@ import {
   type Persona,
   type RoleplayTurn,
   type RubricCriterion,
-  RoleplayTurnSchema,
 } from "../schemas";
 import {
   buildDebriefSystemPrompt,
   buildDebriefUserPrompt,
-  buildEvalSystemPrompt,
-  buildEvalUserPrompt,
   buildRepairPrompt,
-  buildRoleplaySystemPrompt,
   FALLBACK_DEBRIEF,
-  FALLBACK_ROLEPLAY_TURN,
 } from "./prompts";
 
 type OpenAIClientLike = Pick<OpenAI, "chat">;
@@ -104,31 +98,78 @@ export async function generateDebrief(args: DebriefArgs): Promise<Debrief> {
 }
 
 export async function generateRoleplayTurn(persona: Persona, turnNumber: number, history: RoleplayHistory): Promise<RoleplayTurn> {
-  const result = await requestValidated({ systemPrompt: buildRoleplaySystemPrompt(persona, turnNumber), userPrompt: JSON.stringify({ history }), temperature: 0.9, parse: (value) => RoleplayTurnSchema.parse(value) });
-  return result ?? FALLBACK_ROLEPLAY_TURN;
-}
+  const playerMessage = history.filter((turn) => turn.role === "player").at(-1)?.content.toLowerCase() ?? "";
+  const mentionsCustomer = /\b(students?|parents?|teachers?|children|kids?|famil(?:y|ies)|shoppers?|customers?|buyers?|kirana|office|workers?|teens?)\b/.test(playerMessage);
+  const mentionsMoney = /(?:₹|\brs\.?\b|\bprice\b|\bcost\b|\bpay\b|\bsell\b|\bsale\b|\brevenue\b|\bprofit\b|\bmoney\b)/.test(playerMessage);
+  const mentionsProblem = /\b(problem|need|difficult|hard|struggle|waste|lack|help)\b/.test(playerMessage);
 
-function enforceEvaluationConsistency(result: EvalResult, rubric: RubricCriterion[], passCriteriaCount: number): EvalResult {
-  const modelCriteria = new Map(result.criteria.map((criterion) => [criterion.id, criterion]));
-  let corrected = modelCriteria.size !== rubric.length;
-  const criteria = rubric.map((criterion) => {
-    const modelCriterion = modelCriteria.get(criterion.id);
-    const points = Math.min(criterion.maxPoints, Math.max(0, modelCriterion?.points ?? 0));
-    const passed = points >= criterion.passThreshold;
-    const feedback = modelCriterion?.feedback ?? "No evidence was returned for this criterion.";
-    if (!modelCriterion || modelCriterion.points !== points || modelCriterion.passed !== passed) corrected = true;
-    return { id: criterion.id, points, passed, feedback };
-  });
-  const overallPassed = criteria.filter((criterion) => criterion.passed).length >= passCriteriaCount;
-  if (result.overallPassed !== overallPassed) corrected = true;
-  if (corrected) console.warn("Corrected inconsistent AI evaluation result.");
-  return { ...result, criteria, overallPassed };
+  if (turnNumber >= persona.maxTurns) {
+    return {
+      message: mentionsMoney
+        ? "Thank you — I can see who this is for and how a sale could work. That was a thoughtful elevator pitch."
+        : "Thank you — I understand the idea. Before a real investor meeting, add one clear customer and how a sale makes money.",
+      isClosing: true,
+      internalNote: mentionsMoney ? "The pitch included a path to money." : "The pitch needs a clearer path to money.",
+    };
+  }
+
+  if (turnNumber === 1) {
+    return {
+      message: mentionsProblem
+        ? "That problem sounds real. Who exactly feels it most — describe one customer for me."
+        : "I’m intrigued. In one sentence, what problem are you solving and who is it for?",
+      isClosing: false,
+      internalNote: mentionsProblem ? "The founder named a problem and needs a specific customer." : "The founder needs to explain the problem and customer.",
+    };
+  }
+
+  if (turnNumber === 2) {
+    return {
+      message: mentionsCustomer
+        ? "Good — that is a real customer. Now walk me through one sale: what do they pay, and why choose you?"
+        : "Make the customer more specific: who are they, where do they meet this problem, and why do they care?",
+      isClosing: false,
+      internalNote: mentionsCustomer ? "The customer is specific; Meera is testing the business model." : "The customer remains too broad.",
+    };
+  }
+
+  return {
+    message: mentionsMoney
+      ? "That gives me a believable sale. Give me one final sentence that connects the problem, customer, and solution."
+      : "I can see the direction. Give me one final sentence on how this becomes a sale.",
+    isClosing: false,
+    internalNote: mentionsMoney ? "The founder described how money could flow." : "The founder still needs to explain one sale.",
+  };
 }
 
 export async function evaluateAttempt(rubric: RubricCriterion[], passCriteriaCount: number, context: "roleplay" | "builder", payload: EvaluationPayload): Promise<EvalResult | "pending"> {
-  const result = await requestValidated({
-    systemPrompt: buildEvalSystemPrompt(rubric, passCriteriaCount, context, payload.builderFields),
-    userPrompt: buildEvalUserPrompt(payload), temperature: 0.2, parse: (value) => EvalResultSchema.parse(value),
+  const submission = context === "roleplay"
+    ? (payload.transcript ?? []).filter((turn) => turn.role === "player").map((turn) => turn.content).join(" ")
+    : Object.values(payload.builderSubmission ?? {}).join(" ");
+  const text = submission.toLowerCase();
+  const hasIdea = /\S/.test(text);
+  const hasCustomer = /\b(students?|parents?|teachers?|children|kids?|famil(?:y|ies)|shoppers?|customers?|buyers?|kirana|office|workers?|teens?)\b/.test(text);
+  const hasMoney = /(?:₹|\brs\.?\b|\bprice\b|\bcost\b|\bpay\b|\bsell\b|\bsale\b|\brevenue\b|\bprofit\b|\bmoney\b)/.test(text);
+
+  const criteria = rubric.map((criterion) => {
+    const key = `${criterion.id} ${criterion.label} ${criterion.description}`.toLowerCase();
+    const evidence = key.includes("customer") ? hasCustomer : key.includes("money") || key.includes("sale") || key.includes("price") ? hasMoney : hasIdea;
+    const points = evidence ? criterion.maxPoints : Math.max(0, criterion.passThreshold - 1);
+    const passed = points >= criterion.passThreshold;
+    const feedback = evidence
+      ? `You gave clear evidence for ${criterion.label.toLowerCase()}.`
+      : `Add one concrete detail for ${criterion.label.toLowerCase()}.`;
+    return { id: criterion.id, points, passed, feedback };
   });
-  return result ? enforceEvaluationConsistency(result, rubric, passCriteriaCount) : "pending";
+  const overallPassed = criteria.filter((criterion) => criterion.passed).length >= passCriteriaCount;
+  const strengths = criteria.filter((criterion) => criterion.passed).slice(0, 3).map((criterion) => `${criterion.id}: clear evidence included.`);
+  const improvements = criteria.filter((criterion) => !criterion.passed).slice(0, 3).map((criterion) => `${criterion.id}: add one concrete detail.`);
+
+  return {
+    criteria,
+    overallPassed,
+    strengths,
+    improvements,
+    encouragement: overallPassed ? "Nice work — your pitch covers the key details." : "Good start — use the feedback to make your next attempt stronger.",
+  };
 }
