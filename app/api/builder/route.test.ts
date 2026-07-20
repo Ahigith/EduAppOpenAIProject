@@ -38,7 +38,7 @@ test("builder submission is evaluated, saved, and awards XP after a pass", async
   });
   const response = await post(request({ slug: level.slug, submission: { customer: " School students ", value: "Affordable snack for breaks" } }));
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { evaluation: passedEvaluation, awardedXp: 120 });
+  assert.deepEqual(await response.json(), { evaluation: passedEvaluation, awardedXp: 120, isReplay: false });
   assert.deepEqual(evaluations[0]?.slice(0, 3), [level.gameplay.rubric, 1, "builder"]);
   assert.deepEqual((evaluations[0]?.[3] as { builderSubmission: unknown }).builderSubmission, { customer: "School students", value: "Affordable snack for breaks" });
   assert.equal(attempts.length, 1);
@@ -60,7 +60,18 @@ test("pending builder evaluation is saved without awarding XP or completing prog
     upsertProgress: async () => { progressUpdates += 1; return { level_id: level.id } as never; },
   });
   const response = await post(request({ slug: level.slug, submission: { customer: "Students", value: "Affordable snack" } }));
-  assert.deepEqual(await response.json(), { evaluation: "pending", awardedXp: 0 });
+  assert.deepEqual(await response.json(), { evaluation: "pending", awardedXp: 0, isReplay: false });
   assert.deepEqual((attempts[0] as { score: unknown }).score, { status: "pending" });
+  assert.equal(progressUpdates, 0);
+});
+
+test("replaying an already-completed builder level awards no XP and never rewrites progress", async () => {
+  let progressUpdates = 0;
+  const post = handler({
+    getProgress: async () => [{ level_id: level.id, status: "completed", xp_earned: 120 }] as never,
+    upsertProgress: async () => { progressUpdates += 1; return { level_id: level.id } as never; },
+  });
+  const response = await post(request({ slug: level.slug, submission: { customer: "Students", value: "Affordable snack" } }));
+  assert.deepEqual(await response.json(), { evaluation: passedEvaluation, awardedXp: 0, isReplay: true });
   assert.equal(progressUpdates, 0);
 });

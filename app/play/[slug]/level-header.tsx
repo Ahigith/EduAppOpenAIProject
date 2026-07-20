@@ -6,12 +6,11 @@ import { useEffect, useRef, useState } from "react";
 import { useLevelPhase } from "./level-phase";
 
 type Toast = { tone: "ok" | "warn"; message: string };
-type ProgressRow = { levelId: string; status: string; xpEarned: number };
 
 const primaryButton = "inline-flex items-center justify-center gap-2 rounded-xl bg-[#3b2019] px-5 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#5b3024] focus:outline-none focus:ring-2 focus:ring-[#f7c65a] disabled:cursor-wait disabled:opacity-60 disabled:hover:translate-y-0";
 const secondaryButton = "inline-flex items-center justify-center gap-2 rounded-xl border border-[#ddc3aa] bg-white px-5 py-3 text-sm font-black text-[#3b2019] transition hover:-translate-y-0.5 hover:border-[#d9873a] hover:bg-[#fff6e8] focus:outline-none focus:ring-2 focus:ring-[#f7c65a] disabled:opacity-60";
 
-export default function LevelHeader({ title }: { title: string }) {
+export default function LevelHeader({ title, slug }: { title: string; slug: string }) {
   const router = useRouter();
   const phase = useLevelPhase();
   const [toast, setToast] = useState<Toast>();
@@ -29,15 +28,17 @@ export default function LevelHeader({ title }: { title: string }) {
 
   function show(tone: Toast["tone"], message: string) { clearTimeout(timer.current); setToast({ tone, message }); timer.current = setTimeout(() => setToast(undefined), 4000); }
 
+  /** Checkpoints this level as in_progress. Never touches XP — a completed level keeps its badge. */
   async function save(): Promise<boolean> {
-    const userId = localStorage.getItem("userId");
-    if (!userId) { show("warn", "Sign in with your handle to save progress."); return false; }
     try {
-      const response = await fetch(`/api/progress?userId=${encodeURIComponent(userId)}`, { cache: "no-store" });
+      const response = await fetch("/api/progress/checkpoint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ levelSlug: slug, status: "in_progress" }),
+      });
       if (!response.ok) { show("warn", response.status === 401 ? "Your session expired — sign in again to save." : "We couldn’t reach the server. Try again in a moment."); return false; }
-      const rows = await response.json() as ProgressRow[];
-      const xp = rows.reduce((total, row) => total + (row.xpEarned ?? 0), 0);
-      show("ok", `Progress saved — ${rows.length} level${rows.length === 1 ? "" : "s"} tracked, ${xp} XP banked.`);
+      const data = await response.json() as { status?: string };
+      show("ok", data.status === "completed" ? "Progress saved — this level is already complete." : "Progress saved.");
       return true;
     } catch { show("warn", "We couldn’t reach the server. Try again in a moment."); return false; }
   }

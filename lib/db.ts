@@ -117,6 +117,39 @@ export async function upsertProgress(input: {
   return data;
 }
 
+/**
+ * Checkpoint a level as in_progress without ever touching xp_earned.
+ * A level that is already completed keeps its status and banked XP.
+ */
+export async function markLevelInProgress(input: { userId: string; levelId: string }) {
+  const supabase = getSupabaseServerClient();
+  const { data: existing, error: findError } = await supabase
+    .from("progress")
+    .select("status, xp_earned")
+    .eq("user_id", input.userId)
+    .eq("level_id", input.levelId)
+    .maybeSingle();
+
+  if (findError) throw findError;
+  if (existing?.status === "completed") return { status: "completed" as ProgressStatus, xpEarned: existing.xp_earned as number };
+
+  if (existing) {
+    const { error } = await supabase
+      .from("progress")
+      .update({ status: "in_progress", updated_at: new Date().toISOString() })
+      .eq("user_id", input.userId)
+      .eq("level_id", input.levelId);
+    if (error) throw error;
+    return { status: "in_progress" as ProgressStatus, xpEarned: existing.xp_earned as number };
+  }
+
+  const { error } = await supabase
+    .from("progress")
+    .insert({ user_id: input.userId, level_id: input.levelId, status: "in_progress", xp_earned: 0 });
+  if (error) throw error;
+  return { status: "in_progress" as ProgressStatus, xpEarned: 0 };
+}
+
 export async function recordAttempt(input: {
   userId: string;
   levelId: string;

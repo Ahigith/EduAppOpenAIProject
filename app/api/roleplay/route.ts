@@ -4,6 +4,7 @@ import { evaluateAttempt } from "../../../lib/ai/client";
 import { generateRoleplayAttemptTurn } from "../../../lib/ai/roleplay-flow";
 import { appendTranscript, getProgress, getSupabaseServerClient, recordAttempt, upsertProgress } from "../../../lib/db";
 import { getLevelBySlug } from "../../../lib/game/content";
+import { hasCompletedLevel } from "../../../lib/game/replay";
 import { roleplayRestartState, roleplayXpAward } from "../../../lib/game/roleplay-restart";
 import { getAnonymousSessionUserId } from "../../../lib/session";
 import type { EvalResult } from "../../../lib/schemas";
@@ -12,7 +13,7 @@ export const runtime = "nodejs";
 
 type TranscriptRow = { role: "player" | "persona"; content: string };
 type InternalNote = { turnNumber: number; content: string };
-type RoleplayPayload = { kind: "roleplay"; completed?: boolean; internalNotes?: InternalNote[] };
+type RoleplayPayload = { kind: "roleplay"; completed?: boolean; internalNotes?: InternalNote[]; isReplay?: boolean };
 
 function readRoleplayPayload(value: unknown): RoleplayPayload | null {
   if (!value || typeof value !== "object") return null;
@@ -70,8 +71,9 @@ export async function POST(request: Request) {
           .eq("id", currentAttempt.id);
         if (closeAttemptError) throw closeAttemptError;
       }
-      await recordAttempt({ userId, levelId: level.id, payload: { kind: "roleplay", internalNotes: [] } });
-      return NextResponse.json(roleplayRestartState(level.gameplay.persona.maxTurns));
+      const wasCompleted = hasCompletedLevel(await getProgress(userId), level.id);
+      await recordAttempt({ userId, levelId: level.id, payload: { kind: "roleplay", internalNotes: [], isReplay: wasCompleted } });
+      return NextResponse.json({ ...roleplayRestartState(level.gameplay.persona.maxTurns), isReplay: wasCompleted });
     }
     if (action !== undefined) return NextResponse.json({ error: "Invalid roleplay action" }, { status: 400 });
     if (typeof message !== "string" || !message.trim() || message.length > 800) {
@@ -90,16 +92,19 @@ export async function POST(request: Request) {
       .maybeSingle();
     if (existingAttemptError) throw existingAttemptError;
 
-    const existingPayload = readRoleplayPayload(existingAttempt?.payload);
-    if (existingPayload?.completed) {
-      return NextResponse.json({ error: "This roleplay attempt is already complete" }, { status: 409 });
-    }
+    // A message arriving after the last attempt closed (e.g. the player reloaded the results
+    // page and started typing) opens a fresh attempt instead of dead-ending on an error.
+    const lastPayload = readRoleplayPayload(existingAttempt?.payload);
+    const isFinishedAttempt = !existingAttempt || Boolean(lastPayload?.completed);
+    const existingPayload = isFinishedAttempt ? null : lastPayload;
 
-    const attempt = existingAttempt ?? await recordAttempt({
-      userId,
-      levelId: level.id,
-      payload: { kind: "roleplay", internalNotes: [] },
-    });
+    const attempt = isFinishedAttempt
+      ? await recordAttempt({
+          userId,
+          levelId: level.id,
+          payload: { kind: "roleplay", internalNotes: [], isReplay: hasCompletedLevel(await getProgress(userId), level.id) },
+        })
+      : existingAttempt!;
     await appendTranscript({ attemptId: attempt.id, role: "player", content: message.trim() });
 
     const { data: transcriptRows, error: transcriptError } = await supabase
@@ -119,9 +124,11 @@ export async function POST(request: Request) {
     await appendTranscript({ attemptId: attempt.id, role: "persona", content: personaTurn.message });
 
     const internalNotes = [...(existingPayload?.internalNotes ?? []), { turnNumber, content: personaTurn.internalNote }];
-    const completedPayload: RoleplayPayload = { kind: "roleplay", internalNotes, completed: shouldEvaluate };
+    const attemptIsReplay = readRoleplayPayload(attempt.payload)?.isReplay ?? false;
+    const completedPayload: RoleplayPayload = { kind: "roleplay", internalNotes, completed: shouldEvaluate, isReplay: attemptIsReplay };
     let evaluation: EvalResult | "pending" | undefined;
     let awardedXp = 0;
+    let isReplay = false;
 
     if (shouldEvaluate) {
       evaluation = await evaluateAttempt(level.gameplay.rubric, level.gameplay.passCriteriaCount, "roleplay", {
@@ -129,8 +136,10 @@ export async function POST(request: Request) {
         transcript: transcriptWithNotes([...transcript, { role: "persona", content: personaTurn.message }], internalNotes),
       });
       if (evaluation !== "pending" && evaluation.overallPassed) {
-        const wasCompleted = (await getProgress(userId)).some((progress) => progress.level_id === level.id && progress.status === "completed");
+        const wasCompleted = hasCompletedLevel(await getProgress(userId), level.id);
         awardedXp = roleplayXpAward(wasCompleted, level.xpReward);
+        isReplay = wasCompleted;
+        // Only the first pass writes progress — replaying must never overwrite banked XP.
         if (!wasCompleted) {
           await upsertProgress({ userId, levelId: level.id, status: "completed", xpEarned: awardedXp });
         }
@@ -148,7 +157,7 @@ export async function POST(request: Request) {
       turnNumber,
       maxTurns: level.gameplay.persona.maxTurns,
       isClosing: personaTurn.isClosing,
-      ...(shouldEvaluate ? { evaluation: evaluation ?? "pending", awardedXp } : {}),
+      ...(shouldEvaluate ? { evaluation: evaluation ?? "pending", awardedXp, isReplay } : {}),
     });
   } catch (error) {
     console.error("Could not process roleplay turn:", error);

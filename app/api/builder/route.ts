@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { evaluateAttempt } from "../../../lib/ai/client";
 import { getProgress, recordAttempt, upsertProgress } from "../../../lib/db";
 import { getLevelBySlug } from "../../../lib/game/content";
+import { hasCompletedLevel, resolveXpAward } from "../../../lib/game/replay";
 import { getAnonymousSessionUserId } from "../../../lib/session";
 import type { LevelDefinition } from "../../../lib/schemas";
 
@@ -83,17 +84,17 @@ export function createBuilderPostHandler(dependencies: BuilderDependencies = def
       });
 
       let awardedXp = 0;
+      let isReplay = false;
       if (evaluation !== "pending" && evaluation.overallPassed) {
-        const wasCompleted = (await dependencies.getProgress(userId)).some(
-          (progress) => progress.level_id === level.id && progress.status === "completed",
-        );
+        const wasCompleted = hasCompletedLevel(await dependencies.getProgress(userId), level.id);
+        ({ isReplay, awardedXp } = resolveXpAward(wasCompleted, level.xpReward));
+        // Only the first pass writes progress — replaying must never overwrite banked XP.
         if (!wasCompleted) {
-          awardedXp = level.xpReward;
           await dependencies.upsertProgress({ userId, levelId: level.id, status: "completed", xpEarned: awardedXp });
         }
       }
 
-      return NextResponse.json({ evaluation, awardedXp });
+      return NextResponse.json({ evaluation, awardedXp, isReplay });
     } catch (error) {
       console.error("Could not evaluate builder submission:", error);
       return NextResponse.json({ error: "Could not evaluate that builder submission" }, { status: 500 });

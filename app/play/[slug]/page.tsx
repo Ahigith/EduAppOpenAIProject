@@ -20,5 +20,5 @@ export default async function PlayPage({params}:{params:Promise<{slug:string}>})
     gameplay.kind==="builder" ? <BuilderClient slug={slug} title={level.title} instructions={gameplay.instructions} fields={gameplay.fields} rubric={gameplay.rubric} nextSlug={nextSlug}/> :
     null;
   if(!body) notFound();
-  return <LevelPhaseProvider><LevelHeader title={level.title}/>{body}</LevelPhaseProvider>;
+  return <LevelPhaseProvider><LevelHeader title={level.title} slug={slug}/>{body}</LevelPhaseProvider>;
 }
