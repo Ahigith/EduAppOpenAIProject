@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { getProgress } from "../lib/db";
 import { loadAllLevels } from "../lib/game/content";
-import { getAnonymousSessionUserId } from "../lib/session";
+import { getAuthenticatedSessionUserId } from "../lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ function titleForTopic(topic: string): string {
 }
 
 export default async function Home() {
-  const userId = await getAnonymousSessionUserId();
+  const userId = await getAuthenticatedSessionUserId();
   if (!userId) redirect("/login");
 
   const levels = loadAllLevels();

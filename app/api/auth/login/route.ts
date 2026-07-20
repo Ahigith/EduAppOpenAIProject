@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreateUserByHandle } from "../../../../lib/db";
-import { ANON_USER_COOKIE, anonymousCookieOptions } from "../../../../lib/session";
+import { ANON_USER_COOKIE, anonymousCookieOptions, HANDLE_COOKIE } from "../../../../lib/session";
 
 export const runtime = "nodejs";
 
@@ -33,6 +33,7 @@ export function createLoginPostHandler(dependencies: LoginDependencies = default
       const { user, isNew } = await dependencies.getOrCreateUser(handle);
       const response = NextResponse.json({ userId: user.id, isNew });
       response.cookies.set(ANON_USER_COOKIE, user.id, anonymousCookieOptions);
+      response.cookies.set(HANDLE_COOKIE, user.handle, anonymousCookieOptions);
       return response;
     } catch {
       return NextResponse.json({ error: "Could not sign in. Please try again." }, { status: 500 });
