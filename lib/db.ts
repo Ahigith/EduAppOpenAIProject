@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { DRAFT_PAYLOAD_KIND, parseDraftPayload, type DraftPayload, type LevelDraft } from "./game/draft";
 import type { ProgressStatus } from "./schemas";
 
 type JsonPayload = Record<string, unknown> | unknown[];
@@ -169,6 +170,59 @@ export async function recordAttempt(input: {
 
   if (error) throw error;
   return data;
+}
+
+/**
+ * Saves the player's unscored work-in-progress for a level.
+ *
+ * A first-pass draft and a practice-replay draft are kept as separate attempt rows
+ * (they differ on isReplay), so practising can never overwrite the work that led to
+ * the banked badge. Within one of those passes the draft row is updated in place.
+ */
+export async function saveLevelDraft(input: {
+  userId: string;
+  levelId: string;
+  draft: LevelDraft;
+  isReplay: boolean;
+}) {
+  const supabase = getSupabaseServerClient();
+  const payload: DraftPayload = { kind: DRAFT_PAYLOAD_KIND, draft: input.draft, isReplay: input.isReplay };
+
+  const { data: existing, error: findError } = await supabase
+    .from("attempts")
+    .select("id, payload")
+    .eq("user_id", input.userId)
+    .eq("level_id", input.levelId)
+    .contains("payload", { kind: DRAFT_PAYLOAD_KIND })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (findError) throw findError;
+
+  const existingPayload = parseDraftPayload(existing?.payload);
+  if (existing && existingPayload?.isReplay === input.isReplay) {
+    const { error } = await supabase.from("attempts").update({ payload }).eq("id", existing.id);
+    if (error) throw error;
+    return;
+  }
+
+  await recordAttempt({ userId: input.userId, levelId: input.levelId, payload });
+}
+
+/** The most recent draft for this player and level, or null if they have never saved one. */
+export async function getLatestLevelDraft(input: { userId: string; levelId: string }): Promise<LevelDraft | null> {
+  const { data, error } = await getSupabaseServerClient()
+    .from("attempts")
+    .select("payload")
+    .eq("user_id", input.userId)
+    .eq("level_id", input.levelId)
+    .contains("payload", { kind: DRAFT_PAYLOAD_KIND })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return parseDraftPayload(data?.payload)?.draft ?? null;
 }
 
 export async function appendTranscript(input: {

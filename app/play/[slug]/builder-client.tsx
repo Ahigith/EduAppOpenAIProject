@@ -1,17 +1,20 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { restoreBuilderSubmission } from "../../../lib/game/draft";
 import EvaluationResults, { type Criterion, type Evaluation } from "./evaluation-results";
-import { useReportLevelPhase } from "./level-phase";
+import { useReportLevelDraft, useReportLevelPhase } from "./level-phase";
 
 type Field = { id: string; label: string; prompt: string; placeholder?: string; maxChars: number };
 type BuilderResponse = { evaluation?: Evaluation | "pending"; awardedXp?: number; isReplay?: boolean };
 
-export default function BuilderClient({ slug, title, instructions, fields, rubric, nextSlug }: { slug: string; title: string; instructions: string; fields: Field[]; rubric: Criterion[]; nextSlug?: string }) {
+export default function BuilderClient({ slug, title, instructions, fields, rubric, nextSlug, initialSubmission }: { slug: string; title: string; instructions: string; fields: Field[]; rubric: Criterion[]; nextSlug?: string; initialSubmission?: Record<string, string> }) {
   const emptySubmission = () => Object.fromEntries(fields.map((field) => [field.id, ""]));
-  const [submission, setSubmission] = useState<Record<string, string>>(emptySubmission); const [evaluation, setEvaluation] = useState<Evaluation | "pending">(); const [awardedXp, setAwardedXp] = useState(0); const [isReplay, setIsReplay] = useState(false); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
+  // Saved text is remapped onto the current field list — fields added since the save start empty.
+  const [submission, setSubmission] = useState<Record<string, string>>(() => initialSubmission ? restoreBuilderSubmission(initialSubmission, fields.map((field) => field.id)) : emptySubmission()); const [evaluation, setEvaluation] = useState<Evaluation | "pending">(); const [awardedXp, setAwardedXp] = useState(0); const [isReplay, setIsReplay] = useState(false); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   const completedFields = fields.filter((field) => submission[field.id]?.trim()).length;
   useReportLevelPhase(evaluation ? "results" : completedFields > 0 ? "in_progress" : "fresh");
+  useReportLevelDraft(() => evaluation || completedFields === 0 ? null : { mechanic: "builder", submission });
   async function submit(event: FormEvent) { event.preventDefault(); if (busy || fields.some((field) => !submission[field.id]?.trim() || submission[field.id].length > field.maxChars)) return; setError(""); setBusy(true); try { const response = await fetch("/api/builder", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, submission }) }); if (!response.ok) { setError("We couldn’t evaluate your model just now. Please try again."); return; } const data = await response.json() as BuilderResponse; if (!data.evaluation) { setError("We couldn’t evaluate your model just now. Please try again."); return; } setEvaluation(data.evaluation); setAwardedXp(data.awardedXp ?? 0); setIsReplay(data.isReplay ?? false); } catch { setError("We couldn’t evaluate your model just now. Please try again."); } finally { setBusy(false); } }
   function tryAgain() { setSubmission(emptySubmission()); setEvaluation(undefined); setAwardedXp(0); setIsReplay(false); setError(""); }
   if (evaluation) return <EvaluationResults evaluation={evaluation} rubric={rubric} awardedXp={awardedXp} isReplay={isReplay} onTryAgain={tryAgain} busy={busy} error={error} nextSlug={nextSlug} successTitle="Model complete!" pendingTitle="Thanks for building your model!" />;

@@ -3,17 +3,23 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { useReportLevelPhase } from "./level-phase";
+import { restoreSequenceOrder, restoreSortAnswers } from "../../../lib/game/draft";
+import { useReportLevelDraft, useReportLevelPhase } from "./level-phase";
 
 type Item = { id: string; label: string; explain: string; correctBucket?: string };
 type Bucket = { id: string; label: string };
-type Props = { slug: string; kind: "sort_buckets" | "sequence"; scenario: string; items?: Item[]; buckets?: Bucket[]; steps?: Item[] };
+type Props = { slug: string; kind: "sort_buckets" | "sequence"; scenario: string; items?: Item[]; buckets?: Bucket[]; steps?: Item[]; initialAnswers?: Record<string, string>; initialOrder?: string[] };
 type Result = { passed: boolean; percent: number; perItem: { id: string; label: string; correct: boolean; explain: string }[] };
 
-export default function PlayClient({ slug, kind, scenario, items = [], buckets = [], steps = [] }: Props) {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+export default function PlayClient({ slug, kind, scenario, items = [], buckets = [], steps = [], initialAnswers, initialOrder }: Props) {
+  // Saved work is reconciled against the current content file, so an edited level
+  // never restores a placement for an item or bucket that no longer exists.
+  const restoredAnswers = initialAnswers ? restoreSortAnswers(initialAnswers, items.map((item) => item.id), buckets.map((bucket) => bucket.id)) : {};
+  const restoredOrder = initialOrder ? restoreSequenceOrder(initialOrder, steps) : steps;
+
+  const [answers, setAnswers] = useState<Record<string, string>>(restoredAnswers);
   const [selected, setSelected] = useState<string>();
-  const [order, setOrder] = useState(steps);
+  const [order, setOrder] = useState(restoredOrder);
   const [result, setResult] = useState<Result>();
   const [xp, setXp] = useState(0);
   const [isReplay, setIsReplay] = useState(false);
@@ -24,6 +30,11 @@ export default function PlayClient({ slug, kind, scenario, items = [], buckets =
 
   const touched = Object.keys(answers).length > 0 || order.some((step, index) => step.id !== steps[index]?.id);
   useReportLevelPhase(result ? "results" : touched ? "in_progress" : "fresh");
+  useReportLevelDraft(() => {
+    if (result) return null;
+    if (kind === "sort_buckets") return Object.keys(answers).length > 0 ? { mechanic: "sort_buckets", answers } : null;
+    return touched ? { mechanic: "sequence", order: order.map((step) => step.id) } : null;
+  });
 
   async function submit() {
     setBusy(true);

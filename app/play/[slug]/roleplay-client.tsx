@@ -2,15 +2,17 @@
 
 import { FormEvent, useState } from "react";
 import EvaluationResults, { type Criterion, type Evaluation } from "./evaluation-results";
-import { useReportLevelPhase } from "./level-phase";
+import { useReportLevelDraft, useReportLevelPhase } from "./level-phase";
 
 type Persona = { name: string; role: string; maxTurns: number };
 type Message = { role: "player" | "persona"; content: string };
 type TurnResponse = { personaTurn?: { message: string }; turnNumber: number; maxTurns: number; messages?: Message[]; evaluation?: Evaluation | "pending"; awardedXp?: number; isReplay?: boolean; error?: string };
 
-export default function RoleplayClient({ slug, title, setup, persona, rubric, nextSlug }: { slug: string; title: string; setup: string; persona: Persona; rubric: Criterion[]; nextSlug?: string }) {
-  const [messages, setMessages] = useState<Message[]>([]); const [input, setInput] = useState(""); const [turnNumber, setTurnNumber] = useState(0); const [maxTurns, setMaxTurns] = useState(persona.maxTurns); const [evaluation, setEvaluation] = useState<Evaluation | "pending">(); const [awardedXp, setAwardedXp] = useState(0); const [isReplay, setIsReplay] = useState(false); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
+export default function RoleplayClient({ slug, title, setup, persona, rubric, nextSlug, initialMessages, initialTurnNumber, initialInput }: { slug: string; title: string; setup: string; persona: Persona; rubric: Criterion[]; nextSlug?: string; initialMessages?: Message[]; initialTurnNumber?: number; initialInput?: string }) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages ?? []); const [input, setInput] = useState(initialInput ?? ""); const [turnNumber, setTurnNumber] = useState(initialTurnNumber ?? 0); const [maxTurns, setMaxTurns] = useState(persona.maxTurns); const [evaluation, setEvaluation] = useState<Evaluation | "pending">(); const [awardedXp, setAwardedXp] = useState(0); const [isReplay, setIsReplay] = useState(false); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   useReportLevelPhase(evaluation ? "results" : messages.length > 0 || input.trim() ? "in_progress" : "fresh");
+  // The server keeps the real turn state on the open attempt; the draft only restores what the player sees.
+  useReportLevelDraft(() => evaluation || (messages.length === 0 && !input.trim()) ? null : { mechanic: "roleplay", messages, turnNumber, input });
   async function request(body: Record<string, string>): Promise<TurnResponse | null> { setError(""); setBusy(true); try { const response = await fetch("/api/roleplay", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); const data = await response.json() as TurnResponse; if (!response.ok) { setError(data?.error ?? `We couldn’t reach ${persona.name} just now. Please try again.`); return null; } return data; } catch { setError(`We couldn’t reach ${persona.name} just now. Please try again.`); return null; } finally { setBusy(false); } }
   async function submit(event: FormEvent) { event.preventDefault(); if (!input.trim() || input.length > 800 || busy) return; const playerMessage = input.trim(); const data = await request({ slug, message: playerMessage }); if (!data) return; setInput(""); setMessages((current) => [...current, { role: "player", content: playerMessage }, ...(data.personaTurn ? [{ role: "persona" as const, content: data.personaTurn.message }] : [])]); setTurnNumber(data.turnNumber); setMaxTurns(data.maxTurns); if (data.evaluation) setEvaluation(data.evaluation); setAwardedXp(data.awardedXp ?? 0); setIsReplay(data.isReplay ?? false); }
   async function restart() { const data = await request({ slug, action: "restart" }); if (!data) return; setMessages(data.messages ?? []); setTurnNumber(data.turnNumber); setMaxTurns(data.maxTurns); setInput(""); setEvaluation(undefined); setAwardedXp(0); setIsReplay(data.isReplay ?? false); setError(""); }
