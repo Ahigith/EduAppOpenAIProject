@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getProgress } from "../lib/db";
 import { loadAllLevels } from "../lib/game/content";
-import { getAuthenticatedSessionUserId } from "../lib/session";
+import { getAuthenticatedSessionUserId, HANDLE_COOKIE } from "../lib/session";
+import { LogoutButton } from "./map/logout-button";
 
 export const dynamic = "force-dynamic";
 
@@ -23,32 +25,50 @@ export default async function Home() {
   const userId = await getAuthenticatedSessionUserId();
   if (!userId) redirect("/login");
 
+  const handle = (await cookies()).get(HANDLE_COOKIE)?.value ?? "founder";
   const levels = loadAllLevels();
   const progress = await getProgress(userId);
   const completedLevelIds = new Set(progress.filter((item) => item.status === "completed").map((item) => item.level_id));
   const xp = progress.reduce((sum, item) => sum + item.xp_earned, 0);
   const completedCount = completedLevelIds.size;
+  const badgeCount = levels.filter((level) => level.badgeId && completedLevelIds.has(level.id)).length;
+  const badgeTotal = levels.filter((level) => level.badgeId).length;
   const topics = [...new Set(levels.map((level) => level.topic))];
 
   return (
     <main className="min-h-screen px-4 py-5 sm:px-8 sm:py-8">
       <div className="mx-auto max-w-7xl">
-        <header className="rounded-[2rem] border border-white/80 bg-[#3b2019] px-6 py-7 text-[#fff8ed] shadow-xl shadow-[#3b2019]/15 sm:px-9">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <header className="rounded-[2rem] border border-white/80 bg-[#3b2019] text-[#fff8ed] shadow-xl shadow-[#3b2019]/15">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/15 px-6 py-4 sm:px-9">
+            <div className="flex items-center gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[#f7c65a] text-xl font-black text-[#3b2019]">✦</span>
+              <p className="text-sm font-black uppercase tracking-[0.22em] text-[#f7c65a]">Young Entrepreneurs</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <p className="rounded-full bg-white/10 px-3.5 py-2 text-sm font-bold text-[#f7e9d5]">Playing as: <span className="font-black text-white">{handle}</span></p>
+              <LogoutButton />
+            </div>
+          </div>
+          <div className="flex flex-col gap-6 px-6 py-7 sm:px-9 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#f7c65a]">Young Entrepreneurs</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Your founder journey</h1>
+              <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Your founder journey</h1>
               <p className="mt-2 max-w-xl text-sm leading-6 text-[#f7e9d5] sm:text-base">Learn by deciding, building, pitching, and trying again — one ChocoNation challenge at a time.</p>
             </div>
-            <div className="flex gap-3">
-              <div className="rounded-2xl bg-white/10 px-4 py-3 text-center backdrop-blur">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#f7e9d5]">XP earned</p>
-                <p className="mt-1 text-2xl font-black text-[#f7c65a]">{xp}</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl bg-[#f7c65a] px-5 py-4 text-center text-[#3b2019] shadow-lg shadow-black/10">
+                <p className="text-xs font-black uppercase tracking-wider">XP earned</p>
+                <p className="mt-1 text-4xl font-black leading-none">{xp}</p>
               </div>
-              <div className="rounded-2xl bg-white/10 px-4 py-3 text-center backdrop-blur">
+              <div className="rounded-2xl bg-white/10 px-5 py-4 text-center backdrop-blur">
                 <p className="text-xs font-bold uppercase tracking-wider text-[#f7e9d5]">Levels done</p>
                 <p className="mt-1 text-2xl font-black">{completedCount}/{levels.length}</p>
               </div>
+              {badgeTotal > 0 ? (
+                <div className="col-span-2 rounded-2xl bg-white/10 px-5 py-4 text-center backdrop-blur sm:col-span-1">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#f7e9d5]">Badges</p>
+                  <p className="mt-1 text-2xl font-black">{badgeCount}/{badgeTotal}</p>
+                </div>
+              ) : null}
             </div>
           </div>
         </header>
